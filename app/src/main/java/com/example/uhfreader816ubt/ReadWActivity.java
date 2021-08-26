@@ -34,7 +34,6 @@ public class GetActive extends Activity implements OnClickListener {
     private Handler myHandler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                //�жϷ��͵���Ϣ
                 case 0:
                 {
                     String uid = msg.getData().getString("str_uid");
@@ -92,7 +91,7 @@ public class GetActive extends Activity implements OnClickListener {
                     MyService.RecvString ="";
                     while(EPCList.length()>0)
                     {
-                        int index = EPCList.indexOf("00EE00");//��д����ַ��00����
+                        int index = EPCList.indexOf("00EE00");
                         if(index>0)
                         {
                             EPCList = EPCList.substring(index-2);

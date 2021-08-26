@@ -59,10 +59,8 @@ public class MainActivity extends Activity implements OnClickListener{
     public static MyService mys=new MyService();
     //public BluetoothGattCharacteristic target_chara2=null;
     private Handler myHandler = new Handler() {
-        //2.��д��Ϣ������
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                //�жϷ��͵���Ϣ
                 case 0:
                 {
                     mleDeviceListAdapter.clear();
@@ -111,7 +109,6 @@ public class MainActivity extends Activity implements OnClickListener{
         scan_flag=true;
         mleDeviceListAdapter=new LeDeviceListAdapter();
         lv.setAdapter(mleDeviceListAdapter);
-        /*listview�������*/
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> arg0,  View v, int position, long id) {
@@ -171,21 +168,18 @@ public class MainActivity extends Activity implements OnClickListener{
 
     private void init_ble()
     {
-        //�ֻ�Ӳ��֧������
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "Not support BLE", Toast.LENGTH_SHORT).show();
             finish();
         }
 
         // Initializes Bluetooth adapter.
-        //��ȡ�ֻ����ص�����������
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mys.mBluetoothAdapter = bluetoothManager.getAdapter();
 
         // Ensures Bluetooth is available on the device and it is enabled. If not,
         // displays a dialog requesting user permission to enable Bluetooth.
-        //������Ȩ��
         if (mys.mBluetoothAdapter == null || !mys.mBluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
@@ -237,7 +231,6 @@ public class MainActivity extends Activity implements OnClickListener{
         }
     }
 
-    /*ɨ�������豸      */
     private void scanLeDevice(final boolean enable) {
         mys.ScanBtDevice(enable);
     }
