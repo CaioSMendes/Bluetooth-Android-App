@@ -66,7 +66,7 @@
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
                 android:gravity="right"
-                android:text="存储区:" />
+                android:text="Mem:" />
 
             <Spinner
                 android:id="@+id/mem_spinner"
@@ -87,7 +87,7 @@
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
                 android:gravity="right"
-                android:text="起始地址:" />
+                android:text="Address:" />
 
             <EditText
                 android:id="@+id/et_wordptr"
@@ -109,7 +109,7 @@
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
                 android:gravity="right"
-                android:text="长度:" />
+                android:text="Length:" />
 
             <EditText
                 android:id="@+id/et_length"
@@ -131,7 +131,7 @@
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
                 android:gravity="right"
-                android:text="密码(Hex):" />
+                android:text="Pwd(Hex):" />
 
             <EditText
                 android:id="@+id/et_pwd"
@@ -153,7 +153,7 @@
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
                 android:gravity="right"
-                android:text="读写数据(Hex):" />
+                android:text="Content(Hex):" />
 
             <EditText
                 android:id="@+id/et_content_6c"
@@ -182,7 +182,7 @@
                 android:layout_height="@dimen/button_height"
                 android:layout_gravity="center_horizontal"
                 android:layout_weight="1"
-                android:text="读" />
+                android:text="Read" />
 
             <Button
                 android:id="@+id/button_write_6c"
@@ -190,7 +190,7 @@
                 android:layout_height="@dimen/button_height"
                 android:layout_gravity="center_horizontal"
                 android:layout_weight="1"
-                android:text="写" />
+                android:text="Write" />
         </TableRow>
     </TableLayout>
 

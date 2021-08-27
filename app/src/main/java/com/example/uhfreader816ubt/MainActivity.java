@@ -43,7 +43,7 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements OnClickListener{
     private boolean mConnected = false;
     private String status="disconnected";
-    private String mDeviceName;
+	private String mDeviceName;
     private String mDeviceAddress;
     private Bundle b;
     private boolean nConnect=false;
@@ -58,187 +58,187 @@ public class MainActivity extends Activity implements OnClickListener{
     public Object obtstr;
     public static MyService mys=new MyService();
     //public BluetoothGattCharacteristic target_chara2=null;
-    private Handler myHandler = new Handler() {
+    private Handler myHandler = new Handler() {  
         public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case 0:
-                {
-                    mleDeviceListAdapter.clear();
-                    if(!mys.mBleArray.isEmpty()){
-                        for(BluetoothDevice mdevice:mys.mBleArray)
-                        {
-                            mleDeviceListAdapter.addDevice(mdevice);
-                        }
-                        mleDeviceListAdapter.notifyDataSetChanged();
-                    }
-                    break;
-                }
-                case 1:
-                {
-                    connect_state.setText("connected");
-                    break;
-                }
-                case 2:
-                {
-                    connect_state.setText("disconnected");
-                    break;
-                }
-            }
-            super.handleMessage(msg);
-        }
+             switch (msg.what) {   
+	              case 0:
+	              {
+	            	  mleDeviceListAdapter.clear();
+	            	  if(!mys.mBleArray.isEmpty()){
+		            	  for(BluetoothDevice mdevice:mys.mBleArray)
+		            	  {
+		            		  mleDeviceListAdapter.addDevice(mdevice);
+		            	  }
+		            	  mleDeviceListAdapter.notifyDataSetChanged();
+	            	  }
+	            	 break;
+	              }
+                  case 1:   
+                  {
+                       connect_state.setText("connected");
+                       break;   
+                   }  
+                  case 2:
+                  {
+                	  connect_state.setText("disconnected");
+                      break;   
+                  }
+             }
+             super.handleMessage(msg);   
+        }  
+        
+   };  
+   LeDeviceListAdapter mleDeviceListAdapter;
+   ListView lv;
+   private Button btOpen;
+   private Button btSearch;
+   private Button scan_btn;
 
-    };
-    LeDeviceListAdapter mleDeviceListAdapter;
-    ListView lv;
-    private Button btOpen;
-    private Button btSearch;
-    private Button scan_btn;
-
-    private boolean mScanning;
-    private boolean scan_flag;
-    int REQUEST_ENABLE_BT=1;
-    public boolean stopdiscover=false;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Intent intent=new Intent(this,MyService.class);
+   private boolean mScanning;
+   private boolean scan_flag;
+   int REQUEST_ENABLE_BT=1;
+   public boolean stopdiscover=false;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		Intent intent=new Intent(this,MyService.class);
         startService(intent);
-        init();
-        init_ble();
-        scan_flag=true;
-        mleDeviceListAdapter=new LeDeviceListAdapter();
-        lv.setAdapter(mleDeviceListAdapter);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> arg0,  View v, int position, long id) {
-                // TODO Auto-generated method stub
-                final BluetoothDevice device = mleDeviceListAdapter.getDevice(position);
-                if (device == null) return;
-                mDeviceAddress= device.getAddress();
-                if (MyService.mScanning){
-                    stopdiscover=false;
-                    scanLeDevice(false);
-                    scan_btn.setText("�豸����");
-                    scan_flag=true;
-                }
-                mys.ConnectBT(mDeviceAddress);
-                Thread thread=new Thread(new Runnable()
-                {
-                    boolean connect_state=true;
-                    int count=0;
-                    @Override
-                    public void run()
-                    {
-                        while(connect_state)
-                        {
-                            SystemClock.sleep(100);
-                            count++;
-                            if(mys.GetConnectState())
-                            {
-                                myHandler.removeMessages(1);
-                                myHandler.sendEmptyMessage(1);
-                                Intent intent = new Intent();
-                                intent.setClass(MainActivity.this, TabsActivity.class);
-                                startActivity(intent);
-                                break;
-                            }
-                            if(count==30)break;
-                        }
-                        if(!mys.GetConnectState())
-                        {
-                            myHandler.removeMessages(2);
-                            myHandler.sendEmptyMessage(2);
-                        }
-                    }
-                });
-                thread.start();
-            }
-        });
-    }
+		init();
+		init_ble();
+		scan_flag=true;
+	    mleDeviceListAdapter=new LeDeviceListAdapter();
+		lv.setAdapter(mleDeviceListAdapter); 
+		lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> arg0,  View v, int position, long id) {
+				// TODO Auto-generated method stub
+				final BluetoothDevice device = mleDeviceListAdapter.getDevice(position);
+		        if (device == null) return;
+		        mDeviceAddress= device.getAddress();
+		        if (MyService.mScanning){
+		        	 stopdiscover=false;
+					 scanLeDevice(false);
+					 scan_btn.setText("Scan BT");
+					 scan_flag=true;
+		        }
+		        mys.ConnectBT(mDeviceAddress);
+		        Thread thread=new Thread(new Runnable()  
+	            {  
+		        	boolean connect_state=true;
+		        	int count=0;
+	                @Override  
+	                public void run()  
+	                {  
+	                	while(connect_state)
+	                	{
+	                		SystemClock.sleep(100);
+	                		count++;
+		                	if(mys.GetConnectState())
+		                	{
+		                		myHandler.removeMessages(1);
+		                		myHandler.sendEmptyMessage(1);
+		        				Intent intent = new Intent();
+		        				intent.setClass(MainActivity.this, TabsActivity.class);
+		        				startActivity(intent);
+		                		break;
+		                	}
+		                	if(count==30)break;
+	                	}
+	                	if(!mys.GetConnectState())
+	                	{
+	                		myHandler.removeMessages(2);
+	                		myHandler.sendEmptyMessage(2);
+	                	}
+	                }  
+	            });  
+	            thread.start();  
+			}
+		});
+	}
 
-    private void init()
-    {
-        scan_btn=(Button)this.findViewById(R.id.scan_dev_btn);
-        scan_btn.setOnClickListener(this);
-        lv=(ListView)this.findViewById(R.id.lv);
-        connect_state=(TextView)this.findViewById(R.id.connect_state);
-        connect_state.setText(status);
-    }
+	private void init()
+	{
+		scan_btn=(Button)this.findViewById(R.id.scan_dev_btn);
+		scan_btn.setOnClickListener(this);
+		lv=(ListView)this.findViewById(R.id.lv);
+		connect_state=(TextView)this.findViewById(R.id.connect_state);
+		connect_state.setText(status);
+	}
+	
+	private void init_ble()
+	{
+		if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+		    Toast.makeText(this, "Not support BLE", Toast.LENGTH_SHORT).show();
+		    finish();
+		}
+		
+		// Initializes Bluetooth adapter.
+		final BluetoothManager bluetoothManager =
+		        (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+		mys.mBluetoothAdapter = bluetoothManager.getAdapter();
+		
+		// Ensures Bluetooth is available on the device and it is enabled. If not,
+		// displays a dialog requesting user permission to enable Bluetooth.
+		if (mys.mBluetoothAdapter == null || !mys.mBluetoothAdapter.isEnabled()) {
+		    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+		    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+		}
+	}
 
-    private void init_ble()
-    {
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(this, "Not support BLE", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-
-        // Initializes Bluetooth adapter.
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        mys.mBluetoothAdapter = bluetoothManager.getAdapter();
-
-        // Ensures Bluetooth is available on the device and it is enabled. If not,
-        // displays a dialog requesting user permission to enable Bluetooth.
-        if (mys.mBluetoothAdapter == null || !mys.mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
-    }
-
-
-    @Override
-    public void onClick(View view) {
-        // TODO Auto-generated method stub
-        if(view ==scan_btn)
-        {
-            if(scan_flag)
-            {
-                if(mys.nConnect)
-                {
-                    mys.DisconnectBT();
-                }
-                scan_flag=false;
-                stopdiscover=true;
-                mleDeviceListAdapter=new LeDeviceListAdapter();
-                lv.setAdapter(mleDeviceListAdapter);
-                scanLeDevice(true);
-                scan_btn.setText("ֹͣ");
-                Thread thread=new Thread(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        while(stopdiscover)
-                        {
-                            SystemClock.sleep(100);
-                            if(!mys.mBleArray.isEmpty())
-                            {
-                                myHandler.removeMessages(0);
-                                myHandler.sendEmptyMessage(0);
-                            }
-                        }
-                    }
-                });
-                thread.start();
-            }else{
-                scan_flag=true;
-                stopdiscover=false;
-                connect_state.setText("disconnected");
-                scanLeDevice(false);
-                scan_btn.setText("�豸����");
-            }
-        }
-    }
-
-    private void scanLeDevice(final boolean enable) {
+	 
+	@Override
+	public void onClick(View view) {
+		// TODO Auto-generated method stub
+		if(view ==scan_btn)
+		{
+			 if(scan_flag)
+			 {
+				 if(mys.nConnect)
+				 {
+					 mys.DisconnectBT(); 
+				 }
+				 scan_flag=false;
+				 stopdiscover=true;
+				 mleDeviceListAdapter=new LeDeviceListAdapter();
+				 lv.setAdapter(mleDeviceListAdapter);
+				 scanLeDevice(true);
+				 scan_btn.setText("ֹͣ");
+				 Thread thread=new Thread(new Runnable()  
+		            {  
+		                @Override  
+		                public void run()  
+		                {  
+		                	while(stopdiscover)
+		                	{
+		                		SystemClock.sleep(100);
+			                	if(!mys.mBleArray.isEmpty())
+			                	{
+			                		myHandler.removeMessages(0);
+			                		myHandler.sendEmptyMessage(0);
+			                	}
+		                	}
+		                }  
+		            });  
+		            thread.start();  
+			 }else{
+				 scan_flag=true;
+				 stopdiscover=false;
+				 connect_state.setText("disconnected");
+				 scanLeDevice(false);
+				 scan_btn.setText("Stop");
+			 }
+		}
+	}  
+	
+	private void scanLeDevice(final boolean enable) {
         mys.ScanBtDevice(enable);
     }
-
-    // Adapter for holding devices found through scanning.
+	
+	 // Adapter for holding devices found through scanning.
     private class LeDeviceListAdapter extends BaseAdapter {
         private ArrayList<BluetoothDevice> mLeDevices;
-
+        
         private LayoutInflater mInflator;
 
         public LeDeviceListAdapter(){
@@ -278,34 +278,34 @@ public class MainActivity extends Activity implements OnClickListener{
 
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
-
+          
             // General ListView optimization code.
-
+           
             view = mInflator.inflate(R.layout.listitem, null);
             TextView deviceAddress = (TextView) view.findViewById(R.id.tv_deviceAddr);
             TextView deviceName = (TextView) view.findViewById(R.id.tv_deviceName);
-
+              
             BluetoothDevice device = mLeDevices.get(i);
             deviceAddress.setText( device.getAddress());
             deviceName.setText(device.getName());
             return view;
         }
     }
-
-
+	
+	
     @Override
-    protected void onPause() {
-        // TODO Auto-generated method stub
-        super.onPause();
-    }
-
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+	}
+    
     @Override
-    protected void onDestroy() {
-        // TODO Auto-generated method stub
-        super.onPause();
-        Intent intent=new Intent(this,MyService.class);
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		Intent intent=new Intent(this,MyService.class);
         stopService(intent);
-    }
+	}
 
 
 }

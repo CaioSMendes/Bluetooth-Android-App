@@ -1,218 +1,241 @@
 package com.example.uhfreader816ubt;
 
-import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import com.example.uhfreader816ubt.R;
-
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.bluetooth.BluetoothDevice;
+import android.app.ActivityGroup;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.Window;
 import android.view.View.OnClickListener;
-import android.widget.BaseAdapter;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.ListView;
+import android.widget.EditText;
 import android.widget.RadioButton;
-import android.widget.TextView;
+import android.widget.Spinner;
+import android.widget.Toast;
+import android.widget.AdapterView.OnItemSelectedListener;
 
-public class GetActive extends Activity implements OnClickListener {
-    public String EPCList ="";
-    Button btClear;
-    private Handler myHandler = new Handler() {
+public class ReadWActivity extends Activity implements OnClickListener, OnItemSelectedListener{
+	private int mode;
+	private static final int MODE_6B = 0;
+	private static final int MODE_6C = 1;
+	static SoundPool soundpool = new SoundPool(1, AudioManager.STREAM_NOTIFICATION, 100);;
+	static int soundid = soundpool.load("/etc/Scan_new.ogg", 1);
+	byte[]EPC=new byte [100];
+	byte Enum=0;
+	byte Mem=0;
+	byte WordAddr=0;
+	byte Num=0;
+	byte[]Psd=new byte[4];
+	byte[] Data=new byte[100];
+	EditText edENum0;
+//	EditText edENum1;
+//	EditText edENum2;
+//	EditText edENum3;
+//	EditText[] edENums;
+	int selectedEd = 3;
+	int selectedWhenPause = 0;
+	
+	Spinner c_mem;
+	EditText c_wordPtr;
+	EditText c_len;
+	EditText c_pwd;
+	EditText c_ptr;
+	
+	EditText b_id;
+	EditText b_addr;
+	EditText b_num;
+	
+	EditText content;
+	Button rButton;
+	Button wButton;
+	public byte state=0;
+	public String str_update="";
+	private static final int MSG_UPDATE_DATA = 0;
+    private static final int MSG_UPDATE_WRITE = 1;
+    private Handler myHandler = new Handler() {  
         public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case 0:
-                {
-                    String uid = msg.getData().getString("str_uid");
-                    myAdapter.addDevice(uid);
-                    myAdapter.notifyDataSetChanged();
-                    break;
-                }
-            }
-            super.handleMessage(msg);
-        }
-    };
-    ListAdapter myAdapter;
-    ListView lv;
-    public Timer timer;
-    private static final int SCAN_INTERVAL = 10;
-    private boolean Scanflag=false;
-    public int m_type=0;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.get_active);
-        lv=(ListView)findViewById(R.id.list_act);
-        myAdapter=new ListAdapter();
-        lv.setAdapter(myAdapter);
-        btClear = (Button)findViewById(R.id.btClear);
-        btClear.setOnClickListener(this);
-        //m_type=0;
-    }
-    @SuppressLint("ResourceAsColor")
-    @Override
-    public void onClick(View v) {
-        if(v==btClear)
-        {
-            myAdapter.mList.clear();
-            myAdapter.notifyDataSetChanged();
-        }
-    }
-    @Override
-    protected void onResume() {
-        // TODO Auto-generated method stub
-        super.onResume();
-        Scanflag=false;
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if(Scanflag)return;
-                Scanflag=true;
-                if(!MyService.RecvString.equals(""))
-                {
-					/*updateuid(MyService.RecvString);
-					MyService.RecvString="";*/
+             switch (msg.what) {   
+                  case MSG_UPDATE_DATA:
+                  {
+                	  content.setText(str_update);
+                     break;   
+                  }  
+                  case MSG_UPDATE_WRITE:   
+                  {
+                	  if(str_update=="00")
+                	  {
+                		  Toast.makeText(ReadWActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                	  }else
+                	  {
+                		  Toast.makeText(ReadWActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                	  }
+                      break;   
+                  }  
+             }
+             super.handleMessage(msg);   
+        }  
+        
+   };  
+   
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_readw);
+		getIntent().getStringExtra(MainActivity.EXTRA_MODE);
+		initView();
 
-                    EPCList += MyService.RecvString;
-                    MyService.RecvString ="";
-                    while(EPCList.length()>0)
-                    {
-                        int index = EPCList.indexOf("00EE00");
-                        if(index>0)
-                        {
-                            EPCList = EPCList.substring(index-2);
-                            int len = Integer.valueOf(EPCList.substring(0,2), 16);
-                            if(EPCList.length()<(len+1)*2)
-                            {
-                                break;
-                            }
-                            String sEPC = EPCList.substring(0,((len+1)*2));
-                            if(sEPC == EPCList)
-                            {
-                                EPCList="";
-                            }
-                            else
-                            {
-                                EPCList = EPCList.substring((len+1)*2);
-                            }
-                            byte[] data =new byte[len+1];
-                            data = BTClient.hexStringToBytes(sEPC);
-                            if(BTClient.CheckCRC(data, len+1))
-                            {
-                                Log.d("Len", String.valueOf(len+1));
-                                Log.d("EPC", sEPC);
-                                int elen = (len-5)*2;
-                                Log.d("eLen", String.valueOf(elen));
-                                String temp =sEPC.substring(8,elen+8);
-                                updateuid(temp);
-                            }
-							/*if(BTClient.CheckCRC(data, len+1))
-							updateuid(sEPC.substring(8,(len-5)*2));*/
-                        }
-                        else
-                        {
-                            EPCList=EPCList.substring(2);
-                        }
-                    }
-                }
-                Scanflag=false;
-            }
-        }, 0, SCAN_INTERVAL);
-    }
-    private void updateuid( String uid)
-    {
-        Message msg =new Message();
-        msg.what=0;
-        Bundle b = new Bundle();
-        b.putString("str_uid", uid);
-        msg.setData(b);
-        myHandler.sendMessage(msg);
-        System.out.println("str_uid:"+uid);
-    }
+	}
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		Log.i("zhouxin",">>>>>>>>>>>>>>>>>>>>>>rw onResume");
+		if(!BTClient.gettag_id().equals(edENum0.getText().toString())){
+			edENum0.setText(BTClient.gettag_id());
+		}
+		content.setText("");
+		super.onResume();
+	}
+	
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		selectedWhenPause = selectedEd;
+	}
+	
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		Log.i("zhouxin", ">>>>>>>>>>>>>>>>>>>>>rw onDestroy");
+		super.onDestroy();
+	}
+	private void initView(){
+		c_mem = (Spinner)findViewById(R.id.mem_spinner);
+		ArrayAdapter<CharSequence> adapter =  ArrayAdapter.createFromResource(this, R.array.men_select, android.R.layout.simple_spinner_item);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		c_mem.setAdapter(adapter); 
+		c_mem.setSelection(3, true);
+		c_mem.setOnItemSelectedListener(this);
+		
+		c_wordPtr = (EditText)findViewById(R.id.et_wordptr);
+		c_wordPtr.setText("0");
+		c_len = (EditText)findViewById(R.id.et_length);
+		c_len.setText("4");
+		c_pwd = (EditText)findViewById(R.id.et_pwd);
+		c_pwd.setText("00000000");
+		content = (EditText)findViewById(R.id.et_content_6c);
+		rButton = (Button)findViewById(R.id.button_read_6c);
+		wButton = (Button)findViewById(R.id.button_write_6c);
+		edENum0 = (EditText)findViewById(R.id.epc0);
+//		edENums = new EditText[]{edENum0, edENum1, edENum2, edENum3};
+		
+/*		edENum0.setOnClickListener(this);
+		edENum1.setOnClickListener(this);
+		edENum2.setOnClickListener(this);
+		edENum3.setOnClickListener(this);*/
+		rButton.setOnClickListener(this);
+		wButton.setOnClickListener(this);
+		}
+	@Override
+	public void onItemSelected(AdapterView<?> arg0, View arg1, int position,
+			long arg3) {
+		Log.i("zhouxin",">>>>>>>>>position>>>>>>"+position);
+		selectedEd = position;
+	}
+	
+	@Override
+	public void onBackPressed() {
+		// TODO Auto-generated method stub
+		Intent intent = new Intent(this, IsoG2Activity.class);  
+        intent.putExtra(MainActivity.EXTRA_MODE, getIntent().getStringExtra(MainActivity.EXTRA_MODE));
+        Window w = ((ActivityGroup)getParent()).getLocalActivityManager().startActivity(  
+                "FirstActivity", intent);  
+        View view = w.getDecorView();  
+        ((ActivityGroup)getParent()).setContentView(view); 
+        //((ActivityGroup)getParent()).getLocalActivityManager().destroyActivity("SecondActivity", false);
+	}
+	
+	@SuppressLint("ResourceAsColor")
+	@Override
+	public void onClick(View v) {
+			String sepc=edENum0.getText().toString();
+			if(sepc.length()==0)return;
+			Enum = (byte)(sepc.length()/4);
+			EPC= BTClient.hexStringToBytes(sepc);
+			Mem = (byte)selectedEd;
+			WordAddr = (byte)(int)Integer.valueOf(c_wordPtr.getText().toString());
+			Psd[0]=0;
+			Psd[1]=0;
+			Psd[2]=0;
+			Psd[3]=0;
+			if(v==wButton)
+			{
+				Num = (byte)(content.getText().toString().length()/4);
+				if(Num==0)return;
+				Data = BTClient.hexStringToBytes(content.getText().toString());
+				Thread thread=new Thread(new Runnable()  
+	            {  
+	                @Override  
+	                public void run()  
+	                { 
+	                	int result=BTClient.WriteData_G2(Enum,EPC,Mem,WordAddr,Num,Psd,Data);
+	    				if(result==0)
+	    				{
+	    					str_update="00";
+	    					myHandler.removeMessages(MSG_UPDATE_WRITE);
+	                		myHandler.sendEmptyMessage(MSG_UPDATE_WRITE);
+	    				}else
+	    				{
+	    					str_update="";
+	    					myHandler.removeMessages(MSG_UPDATE_WRITE);
+	                		myHandler.sendEmptyMessage(MSG_UPDATE_WRITE);
+	    					/*str_update="";
+	    					myHandler.removeMessages(MSG_UPDATE_DATA);
+	                		myHandler.sendEmptyMessage(MSG_UPDATE_DATA);*/
+	                	}
+	                }  
+	            });  
+				thread.start();
+			}else if(v==rButton)
+			{
+				Num =(byte)(int)Integer.valueOf(c_len.getText().toString());
+				Thread thread=new Thread(new Runnable()  
+	            {  
+	                @Override  
+	                public void run()  
+	                { 
+	                	int result=BTClient.ReadData_G2(Enum, EPC, Mem, WordAddr, Num, Psd, Data);
+	    				if(result==0)
+	    				{
+	    					str_update=BTClient.bytesToHexString(Data, 0, Num*2);
+	    					myHandler.removeMessages(MSG_UPDATE_DATA);
+	                		myHandler.sendEmptyMessage(MSG_UPDATE_DATA);
+	    				}else
+	    				{
+	    					str_update="";
+	    					myHandler.removeMessages(MSG_UPDATE_DATA);
+	                		myHandler.sendEmptyMessage(MSG_UPDATE_DATA);
+	                	}
+	                }  
+	            });  
+				thread.start();
+			}
+		}
+	@Override
+	public void onNothingSelected(AdapterView<?> arg0) {
+		// TODO Auto-generated method stub
+		
+	}
 
-    private class ListAdapter extends BaseAdapter {
-        private ArrayList<String> mList;
-
-        private LayoutInflater mInflator;
-
-        public ListAdapter(){
-            super();
-            mList = new ArrayList<String>();
-            mInflator = getLayoutInflater();
-        }
-
-        public void addDevice(String uid) {
-            //mList.add(uid);
-            mList.add(0, uid);
-        }
-
-        public String getDevice(int position) {
-            return mList.get(position);
-        }
-
-        public void clear() {
-            mList.clear();
-        }
-
-        @Override
-        public int getCount() {
-            return mList.size();
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return mList.get(i);
-        }
-
-        @Override
-        public long getItemId(int i) {
-            return 0;
-        }
-
-        @Override
-        public View getView(int i, View view, ViewGroup viewGroup) {
-
-            // General ListView optimization code.
-            view = mInflator.inflate(R.layout.listgl, null);
-            TextView txt_uid = (TextView) view.findViewById(R.id.txt_uid);
-            String device = mList.get(i);
-            txt_uid.setText( device);
-            return view;
-        }
-    }
-
-
-    @Override
-    protected void onPause() {
-        // TODO Auto-generated method stub
-        super.onPause();
-        myHandler.removeMessages(0);
-        if(timer != null){
-            timer.cancel();
-            timer = null;
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        // TODO Auto-generated method stub
-        super.onPause();
-        Intent intent=new Intent(this,MyService.class);
-        stopService(intent);
-    }
 
 }
